@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星際漂流者 - 選項劇情遊戲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background: linear-gradient(135deg, #0c0c1d 0%, #1a1a3e 50%, #0d1b2a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #00d4ff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .stat-value.danger {
+            color: #ff4757;
+        }
+
+        .story-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-left: 4px solid #00d4ff;
+            padding: 25px;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 30px;
+            line-height: 1.8;
+            font-size: 1.1em;
+            min-height: 150px;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .choice-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 18px 25px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-btn:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .choice-btn::before {
+            content: "▶";
+            margin-right: 10px;
+            color: #00ff88;
+        }
+
+        .choice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-box {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            transition: transform 0.3s;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .level-indicator {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ffd700;
+            font-size: 1.2em;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #ffd700;
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        /* 動畫效果 */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .game-container {
+            animation: pulse 4s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🚀 星際漂流者</h1>
+        <p class="subtitle">你的選擇將決定命運</p>
+        
+        <div class="level-indicator" id="levelDisplay">第 1 關：甦醒</div>
+        
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-label">生命值</div>
+                <div class="stat-value" id="health">100</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">能量</div>
+                <div class="stat-value" id="energy">100</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">物資</div>
+                <div class="stat-value" id="supplies">50</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">聲望</div>
+                <div class="stat-value" id="reputation">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">總分</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+        </div>
+
+        <div class="result-box" id="resultBox"></div>
+        
+        <div class="story-box" id="storyText">
+            你從冷凍艙中甦醒，頭痛欲裂。警報聲迴盪在空蕩蕩的艦橋中。透過觀景窗，你看到自己不在原本的航線上——這裡是未知的星域。控制面板顯示：生命維持系統剩餘 72 小時。
+        </div>
+
+        <div class="choices" id="choices">
+            <button class="choice-btn" onclick="makeChoice(0)">
+                檢查飛船損壞狀況，嘗試修復通訊系統
+            </button>
+            <button class="choice-btn" onclick="makeChoice(1)">
+                先搜尋船艙內的物資和醫療包
+            </button>
+            <button class="choice-btn" onclick="makeChoice(2)">
+                立即查看星圖，確認所在位置
+            </button>
+        </div>
+
+        <button class="restart-btn" id="restartBtn" onclick="restartGame()" style="display: none;">
+            🔄 重新開始
+        </button>
+    </div>
+
+    <script>
+        // 遊戲狀態
+        let gameState = {
+            health: 100,
+            energy: 100,
+            supplies: 50,
+            reputation: 0,
+            score: 0,
+            level: 1,
+            gameOver: false
+        };
+
+        // 關卡資料
+        const levels = [
+            {
+                name: "甦醒",
+                story: "你從冷凍艙中甦醒，頭痛欲裂。警報聲迴盪在空蕩蕩的艦橋中。透過觀景窗，你看到自己不在原本的航線上——這裡是未知的星域。控制面板顯示：生命維持系統剩餘 72 小時。",
+                choices: [
+                    { text: "檢查飛船損壞狀況，嘗試修復通訊系統", health: -10, energy: -20, supplies: 0, reputation: 10, score: 100, next: 1 },
+                    { text: "先搜尋船艙內的物資和醫療包", health: 20, energy: -10, supplies: 30, reputation: 0, score: 80, next: 1 },
+                    { text: "立即查看星圖，確認所在位置", health: 0, energy: -15, supplies: 0, reputation: 5, score: 90, next: 2 }
+                ]
+            },
+            {
+                name: "神秘訊號",
+                story: "你發現了一個微弱的外星訊號。它來自附近的荒廢太空站。同時，你的掃描器也偵測到小行星帶中有稀有礦物，可以修復飛船。",
+                choices: [
+                    { text: "前往太空站調查訊號（風險較高）", health: -20, energy: -30, supplies: 20, reputation: 30, score: 200, next: 3 },
+                    { text: "前往小行星帶採集礦物（較安全）", health: -5, energy: -25, supplies: 40, reputation: 10, score: 150, next: 4 },
+                    { text: "忽略兩者，節省資源繼續航行", health: 0, energy: 10, supplies: -20, reputation: -10, score: 50, next: 5 }
+                ]
+            },
+            {
+                name: "星圖的秘密",
+                story: "你發現自己身處傳說中的「虛空禁區」——一個充滿古老文明遺跡的危險地帶。星圖上標示著一個隱藏的跳躍點，可能通往文明區域。",
+                choices: [
+                    { text: "冒險使用隱藏跳躍點", health: -30, energy: -40, supplies: 0, reputation: 50, score: 300, next: 6 },
+                    { text: "尋找較安全但較長的航線", health: -10, energy: -50, supplies: -30, reputation: 20, score: 200, next: 4 },
+                    { text: "發送求救訊號並等待救援", health: 0, energy: -20, supplies: -40, reputation: 40, score: 150, next: 7 }
+                ]
+            },
+            {
+                name: "太空站的真相",
+                story: "太空站裡有倖存的外星商人！他們願意提供食物和燃料，但要求你幫忙清除站內的機械守衛。",
+                choices: [
+                    { text: "接受任務，戰鬥清除守衛", health: -40, energy: -20, supplies: 60, reputation: 40, score: 400, next: 8 },
+                    { text: "嘗試與守衛談判（使用聲望）", health: 0, energy: -10, supplies: 40, reputation: 60, score: 450, next: 8, needReputation: 30 },
+                    { text: "趁機偷取物資並逃跑", health: -20, energy: -30, supplies: 50, reputation: -50, score: 200, next: 5 }
+                ]
+            },
+            {
+                name: "小行星帶的考驗",
+                story: "你成功採集到稀有礦物，但在返回途中遭遇海盜埋伏！他們要求交出所有物資。",
+                choices: [
+                    { text: "交出物資保命", health: 0, energy: -20, supplies: -50, reputation: -20, score: 100, next: 5 },
+                    { text: "啟動隱蔽裝置逃跑", health: -10, energy: -40, supplies: 40, reputation: 10, score: 350, next: 6 },
+                    { text: "全力衝突突圍", health: -50, energy: -30, supplies: 30, reputation: 30, score: 400, next: 8 }
+                ]
+            },
+            {
+                name: "資源危機",
+                story: "由於資源不足，你被迫降落在荒蕪星球。這裡有奇怪的植物和廢棄的研究站。",
+                choices: [
+                    { text: "食用未知植物（賭博）", health: -50, energy: 30, supplies: 20, reputation: 0, score: 100, next: 8 },
+                    { text: "探索研究站尋找科技", health: -15, energy: -20, supplies: 30, reputation: 20, score: 300, next: 6 },
+                    { text: "發出緊急求救訊號", health: 0, energy: -30, supplies: -20, reputation: 30, score: 200, next: 7 }
+                ]
+            },
+            {
+                name: "跳躍點的奇蹟",
+                story: "你成功穿越跳躍點，來到繁榮的星際貿易中心！這裡有各種機會等著你。",
+                choices: [
+                    { text: "出售情報成為富豪", health: 0, energy: 20, supplies: 100, reputation: -30, score: 600, next: 9 },
+                    { text: "加入星際艦隊尋求庇護", health: 30, energy: 30, supplies: 50, reputation: 80, score: 700, next: 9 },
+                    { text: "繼續探索未知星域", health: -20, energy: -20, supplies: 20, reputation: 60, score: 800, next: 10 }
+                ]
+            },
+            {
+                name: "救援到來",
+                story: "一艘商船回應了你的求救！但他們要求你簽下契約，成為他們的員工三年。",
+                choices: [
+                    { text: "接受契約，安全回家", health: 20, energy: 20, supplies: 30, reputation: 20, score: 400, next: 9 },
+                    { text: "拒絕並繼續獨自求生", health: -30, energy: -40, supplies: -50, reputation: 50, score: 500, next: 5 },
+                    { text: "說服他們免費幫助你（需高聲望）", health: 20, energy: 20, supplies: 50, reputation: 100, score: 800, next: 9, needReputation: 50 }
+                ]
+            },
+            {
+                name: "最終試煉",
+                story: "你終於找到回家的路，但前方有一場巨大的星際風暴。這是最後的考驗！",
+                choices: [
+                    { text: "勇敢穿越風暴", health: -60, energy: -60, supplies: 0, reputation: 100, score: 1000, next: 11 },
+                    { text: "繞路尋找安全航道", health: -20, energy: -80, supplies: -50, reputation: 50, score: 800, next: 11 },
+                    { text: "等待風暴平息", health: 0, energy: -50, supplies: -80, reputation: 30, score: 600, next: 11 }
+                ]
+            },
+            {
+                name: "傳奇探險家",
+                story: "你選擇繼續探索，成為了史上最偉大的星際探險家！你的名字被銘刻在星際史冊中。",
+                choices: [
+                    { text: "建立探索帝國", health: 0, energy: 0, supplies: 0, reputation: 200, score: 2000, next: 12 },
+                    { text: "返回故鄉分享故事", health: 0, energy: 0, supplies: 0, reputation: 150, score: 1500, next: 12 }
+                ]
+            },
+            {
+                name: "重返家園",
+                story: "經歷重重困難，你終於看到熟悉的藍色星球——地球。你成功回家了！",
+                choices: [
+                    { text: "查看最終結局", health: 0, energy: 0, supplies: 0, reputation: 0, score: 0, next: 12 }
+                ]
+            },
+            {
+                name: "遊戲結束",
+                story: "遊戲結束！感謝你的遊玩。",
+                choices: []
+            }
+        ];
+
+        // 結局評價
+        function getEnding() {
+            let ending = "";
+            let badge = "";
+            
+            if (gameState.score >= 2000) {
+                ending = "🏆 傳奇結局：你成為了星際傳奇，名留青史！";
+                badge = "星際傳奇";
+            } else if (gameState.score >= 1500) {
+                ending = "🌟 英雄結局：你成功回家，成為人人稱頌的英雄！";
+                badge = "星際英雄";
+            } else if (gameState.score >= 1000) {
+                ending = "✨ 成功結局：你平安返回家園，經歷成為寶貴回憶。";
+                badge = "生存專家";
+            } else if (gameState.score >= 500) {
+                ending = "📖 平凡結局：你勉強存活，但錯過了許多機會。";
+                badge = "倖存者";
+            } else {
+                ending = "💀 悲劇結局：你的冒險充滿遺憾...";
+                badge = "時運不濟";
+            }
+            
+            if (gameState.reputation >= 100) {
+                ending += "<br>🎖️ 你以高尚的品格贏得所有人的尊敬！";
+            }
+            
+            return { text: ending, badge: badge };
+        }
+
+        // 更新顯示
+        function updateDisplay() {
+            document.getElementById('health').textContent = gameState.health;
+            document.getElementById('energy').textContent = gameState.energy;
+            document.getElementById('supplies').textContent = gameState.supplies;
+            document.getElementById('reputation').textContent = gameState.reputation;
+            document.getElementById('score').textContent = gameState.score;
+            
+            // 生命值警告
+            const healthEl = document.getElementById('health');
+            if (gameState.health <= 30) {
+                healthEl.classList.add('danger');
+            } else {
+                healthEl.classList.remove('danger');
+            }
+        }
+
+        // 做出選擇
+        function makeChoice(choiceIndex) {
+            if (gameState.gameOver) return;
+            
+            const currentLevel = levels[gameState.level - 1];
+            const choice = currentLevel.choices[choiceIndex];
+            
+            // 檢查聲望需求
+            if (choice.needReputation && gameState.reputation < choice.needReputation) {
+                alert(`需要聲望 ${choice.needReputation} 才能選擇此選項！`);
+                return;
+            }
+            
+            // 更新數值
+            gameState.health += choice.health;
+            gameState.energy += choice.energy;
+            gameState.supplies += choice.supplies;
+            gameState.reputation += choice.reputation;
+            gameState.score += choice.score;
+            
+            // 確保數值不會負太多
+            gameState.health = Math.max(0, gameState.health);
+            gameState.energy = Math.max(0, gameState.energy);
+            gameState.supplies = Math.max(0, gameState.supplies);
+            
+            // 檢查死亡條件
+            if (gameState.health <= 0 || gameState.energy <= 0) {
+                gameOver(false);
+                return;
+            }
+            
+            // 進入下一關
+            gameState.level = choice.next;
+            updateDisplay();
+            loadLevel();
+        }
+
+        // 載入關卡
+        function loadLevel() {
+            const level = levels[gameState.level - 1];
+            
+            if (gameState.level === 12) {
+                gameOver(true);
+                return;
+            }
+            
+            document.getElementById('levelDisplay').textContent = `第 ${gameState.level} 關：${level.name}`;
+            document.getElementById('storyText').textContent = level.story;
+            
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = '';
+            
+            level.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                
+                let text = choice.text;
+                if (choice.needReputation) {
+                    text += ` (需要聲望 ${choice.needReputation})`;
+                }
+                btn.textContent = text;
+                btn.onclick = () => makeChoice(index);
+                choicesDiv.appendChild(btn);
+            });
+        }
+
+        // 遊戲結束
+        function gameOver(isWin) {
+            gameState.gameOver = true;
+            
+            const resultBox = document.getElementById('resultBox');
+            const ending = getEnding();
+            
+            let resultHTML = '';
+            if (isWin) {
+                resultHTML = `
+                    <h2>${ending.text}</h2>
+                    <span class="badge">${ending.badge}</span>
+                    <p style="margin-top: 15px; font-size: 1.2em;">
+                        最終分數：${gameState.score} | 
+                        最終聲望：${gameState.reputation}
+                    </p>
+                `;
+            } else {
+                resultHTML = `
+                    <h2>💀 遊戲結束</h2>
+                    <p>你的冒險在此畫下句點...</p>
+                    <p style="margin-top: 10px;">最終分數：${gameState.score}</p>
+                `;
+            }
+            
+            resultBox.innerHTML = resultHTML;
+            resultBox.classList.add('show');
+            
+            document.getElementById('choices').style.display = 'none';
+            document.getElementById('restartBtn').style.display = 'block';
+            document.getElementById('levelDisplay').textContent = '遊戲結束';
+        }
+
+        // 重新開始
+        function restartGame() {
+            gameState = {
+                health: 100,
+                energy: 100,
+                supplies: 50,
+                reputation: 0,
+                score: 0,
+                level: 1,
+                gameOver: false
+            };
+            
+            document.getElementById('resultBox').classList.remove('show');
+            document.getElementById('choices').style.display = 'flex';
+            document.getElementById('restartBtn').style.display = 'none';
+            
+            updateDisplay();
+            loadLevel();
+        }
+
+        // 初始化
+        updateDisplay();
+    </script>
+</body>
+</html>
